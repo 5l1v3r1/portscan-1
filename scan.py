@@ -24,7 +24,7 @@ def scan(host, port):
 
 def help():
 	print """-h --help  View help
-Usage   :  python <filename>.py IP <PortRange>
+Usage   :  python <filename>.py URL/IP <PortRange>
            leaving blank in PortRange will scan from 1 to 1024
 Example :  python scan.py localhost 1-443
 www.github.com/Hadesy2k/portscan"""
