@@ -1,74 +1,63 @@
 #!/usr/bin/env python
-# Hades.y2k
-# 13/Aug/2015
+# Hades.y2k (github.com/Hadesy2k/)
+# 20/Feb/2016
 # GNU GPL <v2.0>
+
 from socket import *
 import threading
-import sys, time
+import sys
+import time
 
-ip = ''
-host = ''
+openPort = []
 
-class main():
-	def __init__(self):
-		self.banner()
-		self.askhost()
-		self.start(host, ip)
+def scan(host, port):
+	s = socket(AF_INET, SOCK_STREAM)
+	s.settimeout(0.5)
+	try:
+		sent = s.connect((host, port))
+		if port not in openPort:
+			openPort.append(port)
+			print "[+] Port %s open" % port
+	except:
+		s.close()
 
-	def banner(self):
-		print "\n\t\t+--------------------------------+"
-		print "\t\t+------ Port Scanner ------------+"
-		print "\t\t+------------------- Hades.y2k --+"
-		print "\t\t+--------------------------------+"
+def help():
+	print """-h --help     View help
+Usage: python <filename>.py IP
+  www.github.com/Hadesy2k/"""
 
-	def askhost(self):
-		global host
-		host = raw_input('Enter the Host: ')
-		try:
-			global ip
-			ip = gethostbyname(host)
-		except Exception as e:
-			print "[!]", e
-			sys.exit(1)
+class mainApp(threading.Thread):
+	def __init__(self, address, port):
+		threading.Thread.__init__(self)
+		self.address = address
+		self.port = port
+		self.run()
 
-	# Threads
-	def thread1(self, host, port):
-		for port in range(1, 512):
-			s = socket(AF_INET, SOCK_STREAM)
-			s.settimeout(0.5)
-			try:
-				sent = s.connect((host, port))
-				print "[+] Port %d open" % port
-			except:
-				pass
-			s.close()
-	def thread2(self, host, port):
-		for port in range(513, 1024):
-			s = socket(AF_INET, SOCK_STREAM)
-			s.settimeout(0.5)
-			try:
-				sent = s.connect((host, port))
-				print "[+] Port %d open" % port
-			except:
-				pass
-			s.close()
+	def run(self):
+		scan(self.address, self.port)
 
-	def start(self, host, ip):
-		print "[*] Host: %s IP: %s" % (host, ip)
-		print "[*] Process started at %s....\n" % time.strftime("%H:%M:%S")
-		try:
-			first = threading.Thread(target=self.thread1(host,ip))
-			second = threading.Thread(target=self.thread2(host,ip))
-			first.start()
-			second.start()
-		except:
-			pass
-		print "\n[*] Port scanning completed at %s...." % time.strftime("%H:%M:%S")
+def main(host):
+	try:
+		print "[!] Scanning ", gethostbyname(host)
+	except:
+		print "\n[x] Host seems offline"; exit()
+	print "[*] Process started at %s....\n" % time.strftime("%H:%M:%S")
+	threadList = []
+	global address
+	address = host
+	for port in range(1, 1025):
+		newthread = mainApp(address, port)
+		newthread.start()
+		threadList.append(newthread)
+	for threads in threadList:
+		threads.join()
+	print "\n[*] Port scanning completed at %s...." % time.strftime("%H:%M:%S")
 
 if __name__ == "__main__":
-	try:
-		main()
-	except KeyboardInterrupt:
-		print "\n[!] User interrupted the process"
-		print "[!] Program terminating........."
-		sys.exit(0)
+	if len(sys.argv) == 2:
+		if sys.argv[1] == '-h' or sys.argv[1] == '--help':
+			help()
+		else:
+			main(sys.argv[1])
+	else:
+		help()
